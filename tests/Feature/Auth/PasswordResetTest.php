@@ -70,4 +70,33 @@ class PasswordResetTest extends TestCase
             return true;
         });
     }
+
+    public function test_forgot_password_is_rate_limited()
+    {
+        for ($i = 0; $i < 5; $i++) {
+            $this->post('/forgot-password', ['email' => 'foo@example.com']);
+        }
+
+        $response = $this->post('/forgot-password', ['email' => 'foo@example.com']);
+
+        $response->assertStatus(429);
+    }
+
+    public function test_reset_password_is_rate_limited()
+    {
+        $payload = [
+            'token' => 'token',
+            'email' => 'foo@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ];
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->post('/reset-password', $payload);
+        }
+
+        $response = $this->post('/reset-password', $payload);
+
+        $response->assertStatus(429);
+    }
 }
